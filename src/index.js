@@ -1,6 +1,5 @@
-/* eslint-disable import/extensions */
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.min.js';
+import './styles.scss';
+import { Accordion, Utility, Grid } from 'bootstrap';
 
 const form = document.createElement('form');
 const input = document.createElement('input');
