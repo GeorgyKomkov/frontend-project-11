@@ -1,1 +1,4 @@
-make lint
+lint: 
+	npx eslint .
+buld:
+	npx webpack
