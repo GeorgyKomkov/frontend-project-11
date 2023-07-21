@@ -1,29 +1,23 @@
-name: Linter
+name: Lint
 
-on:
-  - push
+on: [push]
 
 jobs:
-  linting:
-
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [16.x]
-
     steps:
-        # Check-out repository under GitHub workspace
-        # https://github.com/actions/checkout
-      - uses: actions/checkout@v2
-        # Step's name
-      - name: Use Node.js ${{ matrix.node-version }}
-        # Configures the node version used on GitHub-hosted runners
-        # https://github.com/actions/setup-node
-        uses: actions/setup-node@v2
-        # The Node.js version to configure
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: make install
-      - run: make lint
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14' 
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run linter
+      run: make lint
