@@ -1,4 +1,4 @@
 lint: 
 	npx eslint .
-bild:
+build:
 	npx webpack
