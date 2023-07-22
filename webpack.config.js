@@ -10,11 +10,11 @@ module.exports = {
     path: path.resolve(__dirname, './dist/'),
     clean: true,
   },
-  devServer: {
-    static: path.resolve(__dirname, 'dist'),
-    port: 8080,
-    hot: true,
-  },
+  // devServer: {
+  //   static: path.resolve(__dirname, 'dist'),
+  //   port: 8080,
+  //   hot: true,
+  // },
   plugins: [
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, './public/index.html'),
