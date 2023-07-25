@@ -1,4 +1,4 @@
 lint: 
 	npx eslint .
 build:
-	npx webpack
+	npx webpack --mode production
