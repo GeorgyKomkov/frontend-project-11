@@ -40,13 +40,21 @@ export default () => {
     watchedState.error = null;
     watchedState.url = document.querySelector('#url-input').value;
 
-    validateUrl().then(() => {
-      if (!watchedState.error) {
-        watchedState.feeds.push(watchedState.url);
+    validateUrl()
+      .then(() => {
+        watchedState.error = null;
+        watchedState.formState = 'sending';
+        return watchedState.url;
+      })
+      .then((url) => {
+        watchedState.feeds.push(url);
         watchedState.formState = 'filling';
-        watchedState();
-      }
-    });
+        renderValid(watchedState); // Обновляем представление здесь
+      })
+      .catch((err) => {
+        watchedState.error = err.message;
+        renderValid(watchedState); // Обновляем представление при возникновении ошибки
+      });
   });
 
   // Первоначальное обновление представления
