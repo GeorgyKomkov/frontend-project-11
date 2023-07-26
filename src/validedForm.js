@@ -31,6 +31,7 @@ export default () => {
         watchedState.formState = 'sending';
       })
       .catch((err) => {
+        watchedState.formState = 'inValid';
         watchedState.error = err.message;
       });
   };
@@ -40,21 +41,13 @@ export default () => {
     watchedState.error = null;
     watchedState.url = document.querySelector('#url-input').value;
 
-    validateUrl()
-      .then(() => {
-        watchedState.error = null;
-        watchedState.formState = 'sending';
-        return watchedState.url;
-      })
-      .then((url) => {
-        watchedState.feeds.push(url);
+    validateUrl().then(() => {
+      if (!watchedState.error) {
+        watchedState.feeds.push(watchedState.url);
         watchedState.formState = 'filling';
-        renderValid(watchedState); // Обновляем представление здесь
-      })
-      .catch((err) => {
-        watchedState.error = err.message;
-        renderValid(watchedState); // Обновляем представление при возникновении ошибки
-      });
+        watchedState();
+      }
+    });
   });
 
   // Первоначальное обновление представления
