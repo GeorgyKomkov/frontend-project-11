@@ -5,12 +5,12 @@ const renderValid = (state) => {
 
   feedbackElement.textContent = '';
 
-  if (state.error) {
+  if (state.formState === 'inValid') { // Исправлено: проверяем состояние формы на 'inValid'
     feedbackElement.textContent = state.error;
     urlInput.classList.add('is-invalid');
     feedbackElement.classList.remove('text-success');
     feedbackElement.classList.add('text-danger');
-  } else {
+  } else { // Исправлено: проверяем состояние формы на 'sending'
     feedbackElement.textContent = 'RSS успешно загружен';
     feedbackElement.classList.remove('text-danger');
     feedbackElement.classList.add('text-success');

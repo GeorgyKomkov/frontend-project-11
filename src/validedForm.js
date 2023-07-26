@@ -21,6 +21,7 @@ export default () => {
       url: yup
         .string()
         .url('Не корректный URL')
+        .required('Поле URL должно быть заполнено')
         .notOneOf(watchedState.feeds, 'Такой URL-адрес уже есть в списке фидов'),
     });
 
@@ -45,7 +46,7 @@ export default () => {
       if (!watchedState.error) {
         watchedState.feeds.push(watchedState.url);
         watchedState.formState = 'filling';
-        watchedState();
+        watchedState.url = '';
       }
     });
   });
