@@ -21,9 +21,7 @@ export default () => {
       url: yup
         .string()
         .url('Не корректный URL')
-        .test('is-unique', 'Такой URL уже добавлен', (value) => new Promise((resolve) => {
-          resolve(!watchedState.feeds.includes(value));
-        })),
+        .notOneOf(watchedState.feeds, 'Такой URL-адрес уже есть в списке фидов'),
     });
 
     return schema
@@ -40,8 +38,8 @@ export default () => {
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     watchedState.error = null;
-    const urlInput = document.querySelector('#url-input').value;
-    watchedState.url = urlInput;
+    watchedState.url = document.querySelector('#url-input').value;
+
     validateUrl().then(() => {
       if (!watchedState.error) {
         watchedState.feeds.push(watchedState.url);
