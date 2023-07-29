@@ -50,66 +50,69 @@ export default () => {
   };
 
   const i18nextInstance = i18next.createInstance();
-  i18nextInstance.init({
-    lng: 'ru',
-    debug: false,
-    resources,
-  });
-  const form = document.querySelector('.rss-form');
-  const watchedState = onChange(state, () => {
-    renderValid(watchedState, i18nextInstance);
-  });
+  i18nextInstance
+    .init({
+      lng: 'ru',
+      debug: false,
+      resources,
+    })
+    .then(() => {
+      const form = document.querySelector('.rss-form');
+      const watchedState = onChange(state, () => {
+        renderValid(watchedState, i18nextInstance);
+      });
 
-  yup.setLocale({
-    string: {
-      url: () => i18nextInstance.t('errors.notUrl'),
-      required: () => i18nextInstance.t('errors.empty'),
-    },
-    mixed: {
-      notOneOf: () => i18nextInstance.t('errors.alreadyInList'),
-    },
-  });
+      yup.setLocale({
+        string: {
+          url: () => i18nextInstance.t('errors.notUrl'),
+          required: () => i18nextInstance.t('errors.empty'),
+        },
+        mixed: {
+          notOneOf: () => i18nextInstance.t('errors.alreadyInList'),
+        },
+      });
 
-  const validateUrl = (validatedLinks) => {
-    const schema = yup.object().shape({
-      url: yup.string().url().required().notOneOf(validatedLinks),
+      const validateUrl = (validatedLinks) => {
+        const schema = yup.object().shape({
+          url: yup.string().url().required().notOneOf(validatedLinks),
+        });
+
+        return schema
+          .validate({ url: watchedState.feeds.link })
+          .then(() => {
+            watchedState.error = null;
+            watchedState.formState = 'sending';
+          })
+          .catch((err) => {
+            watchedState.formState = 'inValid';
+            watchedState.error = err.message;
+          });
+      };
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        watchedState.error = null;
+        watchedState.url = document.querySelector('#url-input').value;
+        // валидируем url
+        validateUrl(watchedState.url)
+          .then(() => {
+            watchedState.error = null;
+            watchedState.formState = 'sending';
+            // возвращаем запрос url, должны получить xml
+            return getData(watchedState.url);
+          })
+          .then((response) => {
+            // парсим наш xml
+            const data = parse(response.data.contents, watchedState.url);
+            // добавляем элементы в состояние
+            handleData(data, watchedState);
+            watchedState.formState = 'added';
+          })
+          .catch(() => {
+            watchedState.formState = 'invalid';
+          });
+      });
+
+      watchedState();
     });
-
-    return schema
-      .validate({ url: watchedState.feeds.link })
-      .then(() => {
-        watchedState.error = null;
-        watchedState.formState = 'sending';
-      })
-      .catch((err) => {
-        watchedState.formState = 'inValid';
-        watchedState.error = err.message;
-      });
-  };
-
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    watchedState.error = null;
-    watchedState.url = document.querySelector('#url-input').value;
-    // валидируем url
-    validateUrl(watchedState.url)
-      .then(() => {
-        watchedState.error = null;
-        watchedState.formState = 'sending';
-        // возвращаем запрос url, должны получить xml
-        return getData(watchedState.url);
-      })
-      .then((response) => {
-        // парсим наш xml
-        const data = parse(response.data.contents, watchedState.url);
-        // добавляем элементы в состояние
-        handleData(data, watchedState);
-        watchedState.formState = 'added';
-      })
-      .catch(() => {
-        watchedState.formState = 'invalid';
-      });
-  });
-
-  watchedState();
 };
