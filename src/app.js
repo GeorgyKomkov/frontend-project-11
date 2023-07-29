@@ -13,7 +13,6 @@ export default () => {
     error: null,
     feeds: [],
     posts: [],
-    url: '',
   };
   // приминяем прокси сервер
   const addProxy = (url) => {
@@ -50,69 +49,67 @@ export default () => {
   };
 
   const i18nextInstance = i18next.createInstance();
-  i18nextInstance
-    .init({
-      lng: 'ru',
-      debug: false,
-      resources,
-    })
-    .then(() => {
-      const form = document.querySelector('.rss-form');
-      const watchedState = onChange(state, () => {
-        renderValid(watchedState, i18nextInstance);
-      });
+  i18nextInstance.init({
+    lng: 'ru',
+    debug: false,
+    resources,
+  });
 
-      yup.setLocale({
-        string: {
-          url: () => i18nextInstance.t('errors.notUrl'),
-          required: () => i18nextInstance.t('errors.empty'),
-        },
-        mixed: {
-          notOneOf: () => i18nextInstance.t('errors.alreadyInList'),
-        },
-      });
+  const form = document.querySelector('.rss-form');
+  const watchedState = onChange(state, () => {
+    renderValid(watchedState, i18nextInstance);
+  });
 
-      const validateUrl = (validatedLinks) => {
-        const schema = yup.object().shape({
-          url: yup.string().url().required().notOneOf(validatedLinks),
-        });
+  yup.setLocale({
+    string: {
+      url: () => i18nextInstance.t('errors.notUrl'),
+      required: () => i18nextInstance.t('errors.empty'),
+    },
+    mixed: {
+      notOneOf: () => i18nextInstance.t('errors.alreadyInList'),
+    },
+  });
 
-        return schema
-          .validate({ url: watchedState.feeds.link })
-          .then(() => {
-            watchedState.error = null;
-            watchedState.formState = 'sending';
-          })
-          .catch((err) => {
-            watchedState.formState = 'inValid';
-            watchedState.error = err.message;
-          });
-      };
-
-      form.addEventListener('submit', (event) => {
-        event.preventDefault();
-        watchedState.error = null;
-        watchedState.url = document.querySelector('#url-input').value;
-        // валидируем url
-        validateUrl(watchedState.url)
-          .then(() => {
-            watchedState.error = null;
-            watchedState.formState = 'sending';
-            // возвращаем запрос url, должны получить xml
-            return getData(watchedState.url);
-          })
-          .then((response) => {
-            // парсим наш xml
-            const data = parse(response.data.contents, watchedState.url);
-            // добавляем элементы в состояние
-            handleData(data, watchedState);
-            watchedState.formState = 'added';
-          })
-          .catch(() => {
-            watchedState.formState = 'invalid';
-          });
-      });
-
-      watchedState();
+  const validateUrl = (validatedLinks, input) => {
+    const schema = yup.object().shape({
+      url: yup.string().url().required().notOneOf(validatedLinks),
     });
+
+    return schema
+      .validate({ url: input })
+      .then(() => {
+        watchedState.error = null;
+        watchedState.formState = 'sending';
+      })
+      .catch((err) => {
+        watchedState.error = err.message;
+        watchedState.formState = 'inValid';
+      });
+  };
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    watchedState.error = null;
+    const addedLinks = watchedState.feeds.map((feed) => feed.link);
+    const formData = new FormData(event.target);
+    const input = formData.get('url');
+
+    // валидируем url
+    validateUrl(addedLinks, input)
+      // делаем запрос по валидному url
+      .then(() => getData(input))
+      // получаем  xml файл
+      .then((response) => {
+        // парсим наш xml
+        const data = parse(response.data.contents, input);
+        // добавляем элементы в состояние
+        handleData(data, watchedState);
+      })
+      .catch(() => {
+        // watchedState.formState = 'inValid';
+        // watchedState.error = err.message;
+      });
+  });
+
+  watchedState();
 };
