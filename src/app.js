@@ -25,7 +25,7 @@ export default () => {
   // запрос на получение проксированного URL
   const getData = (url) => axios.get(addProxy(url));
 
-  // функция добовления уникального id для постов
+  // функция добавления  уникального id для постов
   const addId = (posts, id) => {
     posts.forEach((post) => {
       // eslint-disable-next-line no-param-reassign
@@ -40,11 +40,11 @@ export default () => {
     const { feed, posts } = data;
     // устанавливаем фидам уникальный id
     feed.id = uniqueId();
-    // добовляем фид в состояние
+    // добавляем фид в состояние
     watchedState.feeds.push(feed);
-    // добовляем уникальный id постам и feedId
+    // добавляем уникальный id постам и feedId
     addId(posts, feed.id);
-    // доюовляем посты в состояние
+    // добавляем посты в состояние
     watchedState.posts.push(...posts);
   };
 
