@@ -70,9 +70,9 @@ export default () => {
     },
   });
 
-  const validateUrl = (validatedLinks, input) => {
+  const validateUrl = (links, input) => {
     const schema = yup.object().shape({
-      url: yup.string().url().required().notOneOf(validatedLinks),
+      url: yup.string().url().required().notOneOf(links),
     });
 
     return schema
@@ -104,11 +104,13 @@ export default () => {
         const data = parse(response.data.contents, input);
         // добавляем элементы в состояние
         handleData(data, watchedState);
+        watchedState.formState = 'filling';
       })
       .catch(() => {
-        // watchedState.formState = 'inValid';
+        watchedState.formState = 'inValid';
         // watchedState.error = err.message;
       });
+    console.log(watchedState);
   });
 
   watchedState();
