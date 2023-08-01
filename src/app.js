@@ -62,11 +62,11 @@ export default () => {
 
   yup.setLocale({
     string: {
-      url: () => i18nextInstance.t('errors.notUrl'),
-      required: () => i18nextInstance.t('errors.empty'),
+      url: () => ({ key: 'notUrl' }),
+      required: () => ({ key: 'empty' }),
     },
     mixed: {
-      notOneOf: () => i18nextInstance.t('errors.alreadyInList'),
+      notOneOf: () => ({ key: 'alreadyInList' }),
     },
   });
 
@@ -74,17 +74,10 @@ export default () => {
     const schema = yup.object().shape({
       url: yup.string().url().required().notOneOf(links),
     });
-
     return schema
       .validate({ url: input })
-      .then(() => {
-        watchedState.error = null;
-        watchedState.formState = 'sending';
-      })
-      .catch((err) => {
-        watchedState.error = err.message;
-        watchedState.formState = 'inValid';
-      });
+      .then(() => null) // в случае валидной ссылки ничего не отправляем
+      .catch((error) => error.message); // в случае оишибки вернем ошибку
   };
 
   form.addEventListener('submit', (event) => {
@@ -94,24 +87,20 @@ export default () => {
     const formData = new FormData(event.target);
     const input = formData.get('url');
 
-    // валидируем url
     validateUrl(addedLinks, input)
-      // делаем запрос по валидному url
-      .then(() => getData(input))
-      // получаем  xml файл
-      .then((response) => {
-        // парсим наш xml
-        const data = parse(response.data.contents, input);
-        // добавляем элементы в состояние
-        handleData(data, watchedState);
-        watchedState.formState = 'filling';
-      })
-      .catch(() => {
-        watchedState.formState = 'inValid';
-        // watchedState.error = err.message;
+      .then((error) => {
+        if (error) {
+          watchedState.error = error.key;
+          watchedState.formState = 'inValid';
+        } else {
+          getData(input)
+            .then((response) => {
+              const data = parse(response.data.contents, input);
+              handleData(data, watchedState);
+              watchedState.formState = 'filling';
+            });
+        }
       });
     console.log(watchedState);
   });
-
-  watchedState();
 };

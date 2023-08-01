@@ -6,7 +6,7 @@ const renderValid = (state, i18next) => {
   feedbackElement.textContent = '';
 
   if (state.formState === 'inValid') {
-    feedbackElement.textContent = state.error;
+    feedbackElement.textContent = i18next.t(`errors.${state.error}`);
     urlInput.classList.add('is-invalid');
     feedbackElement.classList.remove('text-success');
     feedbackElement.classList.add('text-danger');

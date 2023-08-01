@@ -1,6 +1,6 @@
 lint: 
 	npx eslint .
 build:
-	npx webpack --mode production
+	npx webpack
 install:
 	npm i
