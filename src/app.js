@@ -47,6 +47,32 @@ export default () => {
     // добавляем посты в состояние
     watchedState.posts.push(...posts);
   };
+  const updatePosts = (watchedState) => {
+    // перебираем фиды из состояния и делаем запрос по его ссылке
+    const promises = watchedState.feeds.map((feed) => getData(feed.link)
+      .then((response) => {
+        // парсим поссты из полученго xml
+        const { posts } = parse(response.data.contents);
+        // фильтруем посты по id фида
+        const postsWithCurrentId = watchedState.posts.filter((post) => post.feedId === feed.id);
+        // собираем массив ссылок поста
+        const displayedPostLinks = postsWithCurrentId.map((post) => post.link);
+        // перебираем посты и если массив displayedPostLinks не содержит ссылку поста
+        // то он попадает в массив newPosts
+        const newPosts = posts.filter((post) => !displayedPostLinks.includes(post.link));
+        // добовляем новым постам id корректного фида
+        addId(newPosts, feed.id);
+        // добовляем новые посты в состояне а именно в начало watchedState.posts
+        watchedState.posts.unshift(...newPosts);
+      })
+      // обработка ошибки
+      .catch((error) => {
+        console.log('Ошибка обработки данных', error);
+      }));
+      // ждем завершения  обработки всех постов и через 5 секунд, рекурсивно запускаем функицю
+      // для проверки новых постов
+    return Promise.all(promises).finally(() => setTimeout(updatePosts, 5000, watchedState));
+  };
 
   const i18nextInstance = i18next.createInstance();
   i18nextInstance.init({
@@ -103,4 +129,5 @@ export default () => {
       });
     console.log(watchedState);
   });
+  updatePosts(watchedState);
 };
