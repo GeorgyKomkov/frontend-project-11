@@ -3,7 +3,7 @@ import * as yup from 'yup';
 import i18next from 'i18next';
 import axios from 'axios';
 import { uniqueId } from 'lodash';
-import renderValid from './view';
+import render from './view';
 import resources from './locales/index';
 import parse from './rss';
 
@@ -83,7 +83,7 @@ export default () => {
 
   const form = document.querySelector('.rss-form');
   const watchedState = onChange(state, () => {
-    renderValid(watchedState, i18nextInstance);
+    render(watchedState, i18nextInstance);
   });
 
   yup.setLocale({
