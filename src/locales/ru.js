@@ -9,7 +9,11 @@ export default {
       empty: 'Не должно быть пустым',
     },
     status: {
+      sending: 'RSS загружается',
       success: 'RSS успешно загружен',
+    },
+    buttons: {
+      view: 'Просмотр',
     },
   },
 };
