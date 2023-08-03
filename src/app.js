@@ -47,6 +47,7 @@ export default () => {
     // добавляем посты в состояние
     watchedState.posts.push(...posts);
   };
+  // функция обноления постов
   const updatePosts = (watchedState) => {
     // перебираем фиды из состояния и делаем запрос по его ссылке
     const promises = watchedState.feeds.map((feed) => getData(feed.link)
@@ -67,11 +68,24 @@ export default () => {
       })
       // обработка ошибки
       .catch((error) => {
-        console.log('Ошибка обработки данных', error);
+        console.log(`Ошибка при получении данных из фида ${feed.id}:`, error);
       }));
       // ждем завершения  обработки всех постов и через 5 секунд, рекурсивно запускаем функицю
       // для проверки новых постов
     return Promise.all(promises).finally(() => setTimeout(updatePosts, 5000, watchedState));
+  };
+  // функция обработки ошибки
+  const handleError = (error) => {
+    // если запрос не содержит xml
+    if (error.isParsingError) {
+      return 'notRss';
+    }
+    // если произошла ошибка сети
+    if (axios.isAxiosError(error)) {
+      return 'networkError';
+    }
+    // если ошибка null или undefined возвращаем ключь unknown
+    return error.key ?? 'unknown';
   };
 
   const i18nextInstance = i18next.createInstance();
@@ -116,7 +130,8 @@ export default () => {
     validateUrl(addedLinks, input)
       .then((error) => {
         if (error) {
-          watchedState.error = error.key;
+          console.log(error);
+          watchedState.error = handleError(error);
           watchedState.formState = 'inValid';
         } else {
           getData(input)
