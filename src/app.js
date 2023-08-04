@@ -58,7 +58,7 @@ export default () => {
       .catch((error) => {
         console.error(`Error fetching data from feed ${feed.id}:`, error);
       }));
-    return Promise.all(promises).finally(() => setTimeout(updatePosts, 5000, watchedState));
+    return Promise.all(promises).finally(() => setTimeout(updatePosts, 4000, watchedState));
   };
   const handleError = (error) => {
     if (error.isParsingError) {
