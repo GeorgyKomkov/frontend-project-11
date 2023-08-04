@@ -89,8 +89,7 @@ const createPosts = (state, i18next) => {
 
 const render = (state, i18next) => {
   const submit = document.querySelector('.px-sm-5');
-  createFeeds(state);
-  createPosts(state, i18next);
+
   feedbackElement.textContent = '';
 
   if (state.formState === 'inValid') {
@@ -108,7 +107,9 @@ const render = (state, i18next) => {
     feedbackElement.textContent = i18next.t('status.success');
     form.reset();
     urlInput.focus();
-  } else {
+  } else if (state.formState === 'added') {
+    createFeeds(state);
+    createPosts(state, i18next);
     submit.disabled = false;
     feedbackElement.classList.remove('text-danger');
     feedbackElement.classList.add('text-success');
