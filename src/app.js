@@ -107,20 +107,25 @@ export default () => {
     const addedLinks = watchedState.feeds.map((feed) => feed.link);
     const formData = new FormData(event.target);
     const input = formData.get('url');
-    watchedState.formState = 'sending';
 
     validateUrl(addedLinks, input)
       .then((error) => {
         if (error) {
           console.log(error);
-          watchedState.error = handleError(error);
+          // watchedState.error = handleError(error);
+          watchedState.error = error.key;
           watchedState.formState = 'inValid';
         } else {
           getData(input)
             .then((response) => {
+              watchedState.formState = 'sending';
               const data = parse(response.data.contents, input);
               handleData(data, watchedState);
               watchedState.formState = 'added';
+            })
+            .catch((err) => {
+              watchedState.error = handleError(err);
+              watchedState.formState = 'inValid';
             });
         }
       });
