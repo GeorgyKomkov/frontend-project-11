@@ -18,6 +18,7 @@ export default () => {
       viewedPostIds: [],
     },
   };
+
   const addProxy = (url) => {
     const proxyUrl = new URL('/get', 'https://allorigins.hexlet.app');
     proxyUrl.searchParams.append('disableCache', 'true');
@@ -43,6 +44,7 @@ export default () => {
     addId(posts, feed.id);
     watchedState.posts.push(...posts);
   };
+
   const updatePosts = (watchedState) => {
     const promises = watchedState.feeds.map((feed) => getData(feed.link)
       .then((response) => {
@@ -54,7 +56,7 @@ export default () => {
         watchedState.posts.unshift(...newPosts);
       })
       .catch((error) => {
-        console.log(`Ошибка при получении данных из фида ${feed.id}:`, error);
+        console.error(`Error fetching data from feed ${feed.id}:`, error);
       }));
     return Promise.all(promises).finally(() => setTimeout(updatePosts, 5000, watchedState));
   };
