@@ -60,9 +60,6 @@ const createPosts = (state, i18next) => {
   postsConteiner.append(divConteiner);
 
   state.posts.forEach((post) => {
-    const modalHeader = document.querySelector('.modal-header');
-    const modalBody = document.querySelector('.modal-body');
-    const modalHref = document.querySelector('.full-article');
     const li = document.createElement('li');
     const button = createButton(post, i18next);
     const a = document.createElement('a');
@@ -78,9 +75,20 @@ const createPosts = (state, i18next) => {
       a.classList.add('fw-bold');
     }
     a.textContent = post.title;
-    modalHeader.innerHTML = `<h5>${post.title}</h5>`;
-    modalBody.textContent = post.description;
-    modalHref.setAttribute('href', post.link);
+    button.addEventListener('click', () => {
+      const modalHeader = document.querySelector('.modal-header');
+      const modalBody = document.querySelector('.modal-body');
+      const modalHref = document.querySelector('.full-article');
+      modalHeader.innerHTML = `<h5>${post.title}</h5>`;
+      modalBody.textContent = post.description;
+      modalHref.setAttribute('href', post.link);
+    });
+    // const modalHeader = document.querySelector('.modal-header');
+    // const modalBody = document.querySelector('.modal-body');
+    // const modalHref = document.querySelector('.full-article');
+    // modalHeader.innerHTML = `<h5>${post.title}</h5>`;
+    // modalBody.textContent = post.description;
+    // modalHref.setAttribute('href', post.link);
     li.append(a);
     li.append(button);
     ul.append(li);
