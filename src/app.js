@@ -45,21 +45,6 @@ export default () => {
     watchedState.posts.push(...posts);
   };
 
-  const updatePosts = (watchedState) => {
-    const promises = watchedState.feeds.map((feed) => getData(feed.link)
-      .then((response) => {
-        const { posts } = parse(response.data.contents);
-        const postsWithCurrentId = watchedState.posts.filter((post) => post.feedId === feed.id);
-        const displayedPostLinks = postsWithCurrentId.map((post) => post.link);
-        const newPosts = posts.filter((post) => !displayedPostLinks.includes(post.link));
-        addId(newPosts, feed.id);
-        watchedState.posts.unshift(...newPosts);
-      })
-      .catch((error) => {
-        console.error(`Error fetching data from feed ${feed.id}:`, error);
-      }));
-    return Promise.all(promises).finally(() => setTimeout(updatePosts, 4000, watchedState));
-  };
   const handleError = (error) => {
     if (error.isParsingError) {
       return 'notRss';
@@ -68,6 +53,24 @@ export default () => {
       return 'networkError';
     }
     return error.key ?? 'unknown';
+  };
+
+  const updatePosts = (watchedState) => {
+    const promises = watchedState.feeds.map((feed) => getData(feed.link)
+      .then((response) => {
+        const { posts } = parse(response.data.contents);
+        const postsWithCurrentId = watchedState.posts.filter((post) => post.feedId === feed.id);
+        const displayedPostLinks = postsWithCurrentId.map((post) => post.link);
+        const newPosts = posts.filter((post) => !displayedPostLinks.includes(post.link));
+        addId(newPosts, feed.id);
+        watchedState.posts.push(...newPosts);
+        console.log(`все работает   ${new Date().getMinutes()}---${new Date().getSeconds()}`);
+      })
+      .catch((error) => {
+        console.error(`Error fetching data from feed ${feed.id}:`, error);
+        // eslint-disable-next-line no-param-reassign
+      }));
+    return Promise.all(promises).finally(() => setTimeout(updatePosts, 4000, watchedState));
   };
 
   const i18nextInstance = i18next.createInstance();
