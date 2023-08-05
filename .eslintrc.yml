@@ -4,7 +4,7 @@ env:
 extends: airbnb-base
 overrides:
   - files:
-      - "public/main.9db02ce4819929d0d9b0.js
+      - "public/main.9db02ce4819929d0d9b0.js"
     rules:
       no-console: off
 parserOptions:
