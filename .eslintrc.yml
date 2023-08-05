@@ -2,13 +2,9 @@ env:
   browser: true
   es2021: true
 extends: airbnb-base
-overrides:
-  - files:
-      - "public/main.9db02ce4819929d0d9b0.js"
-    rules:
-      no-console: off
+overrides: []
 parserOptions:
   ecmaVersion: latest
   sourceType: module
-ignorePatterns:
-  - 'public/'
+rules:
+  no-console: off
