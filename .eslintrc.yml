@@ -8,3 +8,5 @@ parserOptions:
   sourceType: module
 rules:
   no-console: off
+ignorePatterns:
+  - 'public/'
