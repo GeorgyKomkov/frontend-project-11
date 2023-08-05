@@ -42,7 +42,7 @@ export default () => {
     feed.id = uniqueId();
     watchedState.feeds.push(feed);
     addId(posts, feed.id);
-    watchedState.posts.push(...posts);
+    watchedState.posts.unshift(...posts);
   };
 
   const handleError = (error) => {
@@ -63,7 +63,7 @@ export default () => {
         const displayedPostLinks = postsWithCurrentId.map((post) => post.link);
         const newPosts = posts.filter((post) => !displayedPostLinks.includes(post.link));
         addId(newPosts, feed.id);
-        watchedState.posts.push(...newPosts);
+        watchedState.posts.unshift(...newPosts);
       })
       .catch((error) => {
         console.error(`Error fetching data from feed ${feed.id}:`, error);
