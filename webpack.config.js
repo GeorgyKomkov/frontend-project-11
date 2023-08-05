@@ -23,20 +23,17 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.(js|jsx)$/i,
+        loader: 'babel-loader',
+      },
+      {
         test: /\.(scss)$/,
-        use: [
-          MiniCssExtractPlugin.loader,
-          'css-loader',
-          'sass-loader',
-        ],
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
       },
     ],
   },
   optimization: {
     minimize: true,
-    minimizer: [
-      new CssMinimizerPlugin(),
-      new TerserPlagin(),
-    ],
+    minimizer: [new CssMinimizerPlugin(), new TerserPlagin()],
   },
 };
