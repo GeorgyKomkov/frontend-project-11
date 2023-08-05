@@ -37,11 +37,11 @@ const createFeeds = (state) => {
     li.classList.add('list-group-item', 'border-0', 'border-end-0');
     h3.classList.add('h6', 'm-0');
     p.classList.add('m-0', 'small', 'text-black-50');
-    h3.append(p);
-    li.append(h3);
     p.textContent = feed.description;
+    li.prepend(p);
+    li.prepend(h3);
     h3.textContent = feed.title;
-    ul.append(li);
+    ul.prepend(li);
   });
 };
 const createPosts = (state, i18next) => {
