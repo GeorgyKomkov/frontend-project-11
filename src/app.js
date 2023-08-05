@@ -63,7 +63,7 @@ export default () => {
         const displayedPostLinks = postsWithCurrentId.map((post) => post.link);
         const newPosts = posts.filter((post) => !displayedPostLinks.includes(post.link));
         addId(newPosts, feed.id);
-        watchedState.posts.unshift(...newPosts);
+        watchedState.posts.push(...newPosts);
       })
       .catch((error) => {
         console.error(`Error fetching data from feed ${feed.id}:`, error);

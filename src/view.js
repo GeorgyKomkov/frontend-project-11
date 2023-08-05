@@ -83,7 +83,7 @@ const createPosts = (state, i18next) => {
     modalHref.setAttribute('href', post.link);
     li.append(a);
     li.append(button);
-    ul.append(li);
+    ul.prepend(li);
   });
 };
 
