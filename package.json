@@ -5,7 +5,7 @@
   "main": "index.js",
   "start": "webpack-dev-server --open",
   "scripts": {
-    "test": "npm run format:generated && npx playwright test",
+    "test": "npm run format:generated && npx eslint --ext .js && npx playwright test",
     "format:generated": "prettier --write public/main.*.js",
     "build": "webpack --mode=production --node-env=production",
     "build:dev": "webpack --mode=development",
