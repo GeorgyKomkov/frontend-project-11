@@ -4,6 +4,7 @@
   "description": "educational project",
   "main": "index.js",
   "start": "webpack-dev-server --open",
+  "type": "module",
   "scripts": {
     "test": "npm run format:generated && npx eslint --ext .js && npx playwright test",
     "format:generated": "prettier --write public/main.*.js",
