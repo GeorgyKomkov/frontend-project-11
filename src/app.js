@@ -1,13 +1,13 @@
-import onChange from 'on-change';
 import * as yup from 'yup';
 import i18next from 'i18next';
 import axios from 'axios';
 import { uniqueId } from 'lodash';
-import render from './view';
 import resources from './locales/index';
 import parse from './rss';
+import customMessages from './locales/customMessages';
+import watch from './view';
 
-export default () => {
+const app = () => {
   const state = {
     formState: 'filling',
     error: null,
@@ -17,6 +17,17 @@ export default () => {
       displayedPost: null,
       viewedPostIds: [],
     },
+  };
+  const elements = {
+    form: document.querySelector('.rss-form'),
+    postsList: document.querySelector('.posts'),
+    feedsConteiner: document.querySelector('.feeds'),
+    postsConteiner: document.querySelector('.posts'),
+    feedbackElement: document.querySelector('.feedback'),
+    urlInput: document.querySelector('#url-input'),
+    modalHeader: document.querySelector('.modal-header'),
+    modalBody: document.querySelector('.modal-body'),
+    modalHref: document.querySelector('.full-article'),
   };
 
   const addProxy = (url) => {
@@ -30,9 +41,7 @@ export default () => {
 
   const addId = (posts, id) => {
     posts.forEach((post) => {
-      // eslint-disable-next-line no-param-reassign
       post.id = uniqueId();
-      // eslint-disable-next-line no-param-reassign
       post.feedId = id;
     });
   };
@@ -67,84 +76,70 @@ export default () => {
       })
       .catch((error) => {
         console.error(`Error fetching data from feed ${feed.id}:`, error);
-        // eslint-disable-next-line no-param-reassign
       }));
     return Promise.all(promises).finally(() => setTimeout(updatePosts, 4000, watchedState));
   };
-
   const i18nextInstance = i18next.createInstance();
   i18nextInstance.init({
     lng: 'ru',
     debug: false,
     resources,
-  });
+  }).then(() => {
+    const watchedState = watch(state, i18nextInstance);
 
-  const form = document.querySelector('.rss-form');
-  const postsList = document.querySelector('.posts');
-  const watchedState = onChange(state, () => {
-    render(watchedState, i18nextInstance);
-  });
+    yup.setLocale(customMessages);
 
-  yup.setLocale({
-    string: {
-      url: () => ({ key: 'notUrl' }),
-      required: () => ({ key: 'empty' }),
-    },
-    mixed: {
-      notOneOf: () => ({ key: 'alreadyInList' }),
-    },
-  });
-
-  const validateUrl = (links, input) => {
-    const schema = yup.object().shape({
-      url: yup.string().url().required().notOneOf(links),
-    });
-    return schema
-      .validate({ url: input })
-      .then(() => null)
-      .catch((error) => error.message);
-  };
-
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    watchedState.error = null;
-    const addedLinks = watchedState.feeds.map((feed) => feed.link);
-    const formData = new FormData(event.target);
-    const input = formData.get('url');
-
-    validateUrl(addedLinks, input)
-      .then((error) => {
-        if (error) {
-          console.log(error);
-          // watchedState.error = handleError(error);
-          watchedState.error = error.key;
-          watchedState.formState = 'inValid';
-        } else {
-          getData(input)
-            .then((response) => {
-              watchedState.formState = 'sending';
-              const data = parse(response.data.contents, input);
-              handleData(data, watchedState);
-              watchedState.formState = 'added';
-            })
-            .catch((err) => {
-              watchedState.error = handleError(err);
-              watchedState.formState = 'inValid';
-            });
-        }
+    const validateUrl = (links, input) => {
+      const schema = yup.object().shape({
+        url: yup.string().url().required().notOneOf(links),
       });
-    console.log(watchedState);
-  });
+      return schema
+        .validate({ url: input })
+        .then(() => null)
+        .catch((error) => error.message);
+    };
 
-  postsList.addEventListener('click', (e) => {
-    const postId = e.target.dataset.id;
-    console.log(postId);
-    console.log(watchedState);
-    if (postId) {
-      watchedState.uiState.displayedPost = postId;
-      watchedState.uiState.viewedPostIds.push(postId);
-    }
-  });
+    elements.form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const addedLinks = watchedState.feeds.map((feed) => feed.link);
+      const formData = new FormData(event.target);
+      const input = formData.get('url');
+      watchedState.formState = 'sending';
 
-  updatePosts(watchedState);
+      validateUrl(addedLinks, input)
+        .then((error) => {
+          if (error) {
+            watchedState.error = error.key;
+            watchedState.formState = 'inValid';
+          } else {
+            watchedState.error = null;
+            watchedState.formState = 'sending';
+            getData(input)
+              .then((response) => {
+                const data = parse(response.data.contents, input);
+                handleData(data, watchedState);
+                watchedState.formState = 'added';
+              })
+              .catch((err) => {
+                watchedState.error = handleError(err);
+                watchedState.formState = 'inValid';
+              });
+          }
+        });
+    });
+
+    elements.postsList.addEventListener('click', (e) => {
+      const postId = e.target.dataset.id;
+      if (postId) {
+        watchedState.uiState.displayedPost = postId;
+        watchedState.uiState.viewedPostIds.push(postId);
+      }
+    });
+
+    updatePosts(watchedState);
+  }).catch((error) => {
+    console.error('Error initializing i18nextInstance:', error);
+  });
 };
+
+export default app;
