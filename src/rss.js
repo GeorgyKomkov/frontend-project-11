@@ -14,8 +14,7 @@ export default (xml, url) => {
     title: feedTitle,
     description: feedDescription,
   };
-  // преобразум псевдо - коллекцию в массив при помощи rest
-  // используем map, так как при использовании forEach нельзя делать return
+
   const posts = [...data.querySelectorAll('item')].map((post) => {
     const link = post.querySelector('link').textContent;
     const title = post.querySelector('title').textContent;

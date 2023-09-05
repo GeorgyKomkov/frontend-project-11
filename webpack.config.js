@@ -1,20 +1,20 @@
-import path from 'path';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import CssMinimizerPlugin from 'css-minimizer-webpack-plugin';
 import TerserPlugin from 'terser-webpack-plugin';
+import path from 'path';
 
 export default {
   mode: process.env.NODE_ENV || 'development',
-  entry: path.resolve(__dirname, './src/index.js'),
+  entry: path.resolve(process.cwd(), './src/index.js'),
   output: {
     filename: '[name].[contenthash].js',
-    path: path.resolve(__dirname, './public/'),
+    path: path.resolve(process.cwd(), './public/'),
     clean: true,
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, './index.html'),
+      template: path.resolve(process.cwd(), './index.html'),
     }),
     new MiniCssExtractPlugin({
       filename: '[name].[contenthash].css',

@@ -2,10 +2,10 @@ import * as yup from 'yup';
 import i18next from 'i18next';
 import axios from 'axios';
 import { uniqueId } from 'lodash';
-import resources from './locales/index';
-import parse from './rss';
-import customMessages from './locales/customMessages';
-import watch from './view';
+import resources from './locales/index.js';
+import parse from './rss.js';
+import customMessages from './locales/customMessages.js';
+import watch from './view.js';
 
 const app = () => {
   const state = {
