@@ -1,8 +1,8 @@
 import onChange from 'on-change';
 
 const elements = {
-  feedsConteiner: document.querySelector('.feeds'),
-  postsConteiner: document.querySelector('.posts'),
+  containerFeeds: document.querySelector('.feeds'),
+  containerPosts: document.querySelector('.posts'),
   form: document.querySelector('.rss-form'),
   feedbackElement: document.querySelector('.feedback'),
   urlInput: document.querySelector('#url-input'),
@@ -21,21 +21,22 @@ const createButton = (post, i18next) => {
   button.textContent = i18next.t('buttons.view');
   return button;
 };
-const createFeeds = (state) => {
-  elements.feedsConteiner.innerHTML = '';
-  const divConteiner = document.createElement('div');
+
+const createContainers = (state) => {
+  elements.containerFeeds.innerHTML = '';
+  const divContainer = document.createElement('div');
   const divTitle = document.createElement('div');
   const ul = document.createElement('ul');
   const h2 = document.createElement('h2');
 
   h2.classList.add('card-title', 'h4');
   h2.textContent = 'Фиды';
-  divConteiner.classList.add('card', 'border-0');
+  divContainer.classList.add('card', 'border-0');
   divTitle.classList.add('card-body');
   divTitle.append(h2);
   ul.classList.add('list-group', 'border-0', 'rounded-0');
-  divConteiner.append(divTitle, ul);
-  elements.feedsConteiner.append(divConteiner);
+  divContainer.append(divTitle, ul);
+  elements.containerFeeds.append(divContainer);
 
   state.feeds.forEach((feed) => {
     const li = document.createElement('li');
@@ -51,20 +52,21 @@ const createFeeds = (state) => {
     ul.prepend(li);
   });
 };
+
 const createPosts = (state, i18next) => {
-  elements.postsConteiner.innerHTML = '';
-  const divConteiner = document.createElement('div');
+  elements.containerPosts.innerHTML = '';
+  const divContainer = document.createElement('div');
   const divTitle = document.createElement('div');
   const ul = document.createElement('ul');
   const h2 = document.createElement('h2');
-  divConteiner.classList.add('card', 'border-0');
+  divContainer.classList.add('card', 'border-0');
   divTitle.classList.add('card-body');
   ul.classList.add('list-group', 'border-0', 'rounded-0');
-  divConteiner.append(divTitle, ul);
+  divContainer.append(divTitle, ul);
   h2.classList.add('card-title', 'h4');
   h2.textContent = 'Посты';
   divTitle.append(h2);
-  elements.postsConteiner.append(divConteiner);
+  elements.containerPosts.append(divContainer);
 
   state.posts.forEach((post) => {
     const li = document.createElement('li');
@@ -75,7 +77,7 @@ const createPosts = (state, i18next) => {
     a.setAttribute('data-id', post.id);
     a.setAttribute('target', '_blank');
     a.setAttribute('rel', 'noopener noreferrer');
-    if (state.uiState.viewedPostIds.includes(post.id)) {
+    if (state.uiState.viewedPostIds.has(post.id)) {
       a.classList.add('fw-normal');
       a.classList.add('link-secondary');
     } else {
@@ -101,39 +103,44 @@ const render = (state, i18next) => {
 
   elements.feedbackElement.textContent = '';
 
-  if (state.formState === 'inValid') {
-    submit.disabled = false;
-    elements.feedbackElement.textContent = i18next.t(`errors.${state.error}`);
-    elements.urlInput.classList.add('is-invalid');
-    elements.feedbackElement.classList.remove('text-success');
-    elements.feedbackElement.classList.add('text-danger');
-  } else if (state.formState === 'sending') {
-    submit.disabled = true;
-    elements.urlInput.classList.remove('is-invalid');
-    elements.feedbackElement.classList.remove('text-danger');
-    elements.feedbackElement.textContent = i18next.t('status.sending');
-    elements.feedbackElement.classList.add('text-success');
-    elements.feedbackElement.textContent = i18next.t('status.success');
-    elements.form.reset();
-    elements.urlInput.focus();
-  } else if (state.formState === 'added') {
-    createFeeds(state);
-    createPosts(state, i18next);
-    submit.disabled = false;
-    elements.feedbackElement.classList.remove('text-danger');
-    elements.feedbackElement.classList.add('text-success');
-    elements.urlInput.classList.remove('is-invalid');
-    elements.feedbackElement.textContent = i18next.t('status.success');
-    elements.form.reset();
-    elements.urlInput.focus();
+  switch (state.form.status) {
+    case 'inValid':
+      submit.disabled = false;
+      elements.feedbackElement.textContent = i18next.t(`errors.${state.error}`);
+      elements.urlInput.classList.add('is-invalid');
+      elements.feedbackElement.classList.remove('text-success');
+      elements.feedbackElement.classList.add('text-danger');
+      break;
+    case 'sending':
+      submit.disabled = true;
+      elements.urlInput.classList.remove('is-invalid');
+      elements.feedbackElement.classList.remove('text-danger');
+      elements.feedbackElement.textContent = i18next.t('status.sending');
+      elements.feedbackElement.classList.add('text-success');
+      elements.feedbackElement.textContent = i18next.t('status.success');
+      elements.urlInput.focus();
+      break;
+    case 'added':
+      createContainers(state);
+      createPosts(state, i18next);
+      submit.disabled = false;
+      elements.feedbackElement.classList.remove('text-danger');
+      elements.feedbackElement.classList.add('text-success');
+      elements.urlInput.classList.remove('is-invalid');
+      elements.feedbackElement.textContent = i18next.t('status.success');
+      elements.form.reset();
+      elements.urlInput.focus();
+      break;
+    default:
+      break;
   }
 };
 
-const watch = (state, i18nextInstance) => {
+const watchState = (state, i18nextInstance) => {
   const watchedState = onChange(state, () => {
     render(watchedState, i18nextInstance);
   });
   return watchedState;
 };
 
-export default watch;
+export default watchState;

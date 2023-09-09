@@ -9,20 +9,22 @@ import watch from './view.js';
 
 const app = () => {
   const state = {
-    formState: 'filling',
+    form: {
+      status: 'filling',
+    },
     error: null,
     feeds: [],
     posts: [],
     uiState: {
       displayedPost: null,
-      viewedPostIds: [],
+      viewedPostIds: new Set(),
     },
   };
   const elements = {
     form: document.querySelector('.rss-form'),
     postsList: document.querySelector('.posts'),
-    feedsConteiner: document.querySelector('.feeds'),
-    postsConteiner: document.querySelector('.posts'),
+    feedsContainer: document.querySelector('.feeds'),
+    postsContainer: document.querySelector('.posts'),
     feedbackElement: document.querySelector('.feedback'),
     urlInput: document.querySelector('#url-input'),
     modalHeader: document.querySelector('.modal-header'),
@@ -37,12 +39,10 @@ const app = () => {
     return proxyUrl.toString();
   };
 
-  const getData = (url) => axios.get(addProxy(url));
-
-  const addId = (posts, id) => {
-    posts.forEach((post) => {
-      post.id = uniqueId();
-      post.feedId = id;
+  const addId = (items, id) => {
+    items.forEach((item) => {
+      item.id = uniqueId();
+      item.feedId = id;
     });
   };
 
@@ -61,24 +61,44 @@ const app = () => {
     if (axios.isAxiosError(error)) {
       return 'networkError';
     }
-    return error.key ?? 'unknown';
+    return 'unknown';
+  };
+
+  const loadRSS = (watchedState, url) => {
+    watchedState.error = null;
+    watchedState.form.status = 'sending';
+
+    axios.get(addProxy(url), {
+      timeout: 10000,
+    })
+      .then((response) => {
+        const data = parse(response.data.contents, url);
+        handleData(data, watchedState);
+        watchedState.form.status = 'added';
+      })
+      .catch((err) => {
+        watchedState.error = handleError(err);
+        watchedState.form.status = 'inValid';
+      });
   };
 
   const updatePosts = (watchedState) => {
-    const promises = watchedState.feeds.map((feed) => getData(feed.link)
-      .then((response) => {
-        const { posts } = parse(response.data.contents);
-        const postsWithCurrentId = watchedState.posts.filter((post) => post.feedId === feed.id);
-        const displayedPostLinks = postsWithCurrentId.map((post) => post.link);
-        const newPosts = posts.filter((post) => !displayedPostLinks.includes(post.link));
-        addId(newPosts, feed.id);
-        watchedState.posts.unshift(...newPosts);
-      })
-      .catch((error) => {
-        console.error(`Error fetching data from feed ${feed.id}:`, error);
-      }));
-    return Promise.all(promises).finally(() => setTimeout(updatePosts, 4000, watchedState));
+    const updateFeedData = (feed) => {
+      loadRSS(watchedState, feed.link)
+        .then(() => {
+          setTimeout(updateFeedData, 4000, feed); // Периодически обновляем данные
+        })
+        .catch((error) => {
+          console.error(`Error fetching data from feed ${feed.id}:`, error);
+          setTimeout(updateFeedData, 4000, feed); // Повторно пытаемся обновить данные после ошибки
+        });
+    };
+
+    watchedState.feeds.forEach((feed) => {
+      updateFeedData(feed);
+    });
   };
+
   const i18nextInstance = i18next.createInstance();
   i18nextInstance.init({
     lng: 'ru',
@@ -89,9 +109,9 @@ const app = () => {
 
     yup.setLocale(customMessages);
 
-    const validateUrl = (links, input) => {
+    const validateURL = (existingURLs, input) => {
       const schema = yup.object().shape({
-        url: yup.string().url().required().notOneOf(links),
+        url: yup.string().url().required().notOneOf(existingURLs),
       });
       return schema
         .validate({ url: input })
@@ -101,29 +121,17 @@ const app = () => {
 
     elements.form.addEventListener('submit', (event) => {
       event.preventDefault();
-      const addedLinks = watchedState.feeds.map((feed) => feed.link);
+      const addedURLs = watchedState.feeds.map((feed) => feed.link);
       const formData = new FormData(event.target);
       const input = formData.get('url');
-      watchedState.formState = 'sending';
 
-      validateUrl(addedLinks, input)
+      validateURL(addedURLs, input)
         .then((error) => {
           if (error) {
             watchedState.error = error.key;
-            watchedState.formState = 'inValid';
+            watchedState.form.status = 'inValid';
           } else {
-            watchedState.error = null;
-            watchedState.formState = 'sending';
-            getData(input)
-              .then((response) => {
-                const data = parse(response.data.contents, input);
-                handleData(data, watchedState);
-                watchedState.formState = 'added';
-              })
-              .catch((err) => {
-                watchedState.error = handleError(err);
-                watchedState.formState = 'inValid';
-              });
+            loadRSS(watchedState, input);
           }
         });
     });
@@ -132,7 +140,7 @@ const app = () => {
       const postId = e.target.dataset.id;
       if (postId) {
         watchedState.uiState.displayedPost = postId;
-        watchedState.uiState.viewedPostIds.push(postId);
+        watchedState.uiState.viewedPostIds.add(postId);
       }
     });
 
