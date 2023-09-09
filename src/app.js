@@ -86,11 +86,11 @@ const app = () => {
     const updateFeedData = (feed) => {
       loadRSS(watchedState, feed.link)
         .then(() => {
-          setTimeout(updateFeedData, 4000, feed); // Периодически обновляем данные
+          setTimeout(updateFeedData, 4000, feed);
         })
         .catch((error) => {
           console.error(`Error fetching data from feed ${feed.id}:`, error);
-          setTimeout(updateFeedData, 4000, feed); // Повторно пытаемся обновить данные после ошибки
+          setTimeout(updateFeedData, 4000, feed);
         });
     };
 
