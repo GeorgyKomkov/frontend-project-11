@@ -6,15 +6,15 @@ import path from 'path';
 
 export default {
   mode: process.env.NODE_ENV || 'development',
-  entry: './src/index.js',
+  entry: path.resolve(process.cwd(), './src/index.js'),
   output: {
     filename: '[name].[contenthash].js',
-    path: path.resolve(__dirname, 'public'),
+    path: path.resolve(process.cwd(), './public/'),
     clean: true,
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './index.html',
+      template: path.resolve(process.cwd(), './index.html'),
     }),
     new MiniCssExtractPlugin({
       filename: '[name].[contenthash].css',
