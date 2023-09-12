@@ -1,4 +1,4 @@
-export default (xml, url) => {
+const parseXML = (xml) => {
   const parser = new DOMParser();
   const data = parser.parseFromString(xml, 'text/xml');
   const parseError = data.querySelector('parsererror');
@@ -7,6 +7,11 @@ export default (xml, url) => {
     error.isParsingError = true;
     throw error;
   }
+  return data;
+};
+
+const parse = (xml, url) => {
+  const data = parseXML(xml);
   const feedTitle = data.querySelector('title').textContent;
   const feedDescription = data.querySelector('description').textContent;
   const feed = {
@@ -29,3 +34,4 @@ export default (xml, url) => {
   });
   return { feed, posts };
 };
+export default parse;

@@ -22,7 +22,7 @@ const createButton = (post, i18next) => {
   return button;
 };
 
-const createContainers = (state) => {
+const createFeedContainers = (state) => {
   elements.containerFeeds.innerHTML = '';
   const divContainer = document.createElement('div');
   const divTitle = document.createElement('div');
@@ -97,6 +97,12 @@ const createPosts = (state, i18next) => {
     ul.append(li);
   });
 };
+const isPost = (state, i18next) => {
+  if (state.posts.length !== 0) {
+    return createPosts(state, i18next);
+  }
+  return null;
+};
 
 const render = (state, i18next) => {
   const submit = document.querySelector('.px-sm-5');
@@ -105,6 +111,7 @@ const render = (state, i18next) => {
 
   switch (state.form.status) {
     case 'inValid':
+      isPost(state, i18next);
       submit.disabled = false;
       elements.feedbackElement.textContent = i18next.t(`errors.${state.error}`);
       elements.urlInput.classList.add('is-invalid');
@@ -117,11 +124,10 @@ const render = (state, i18next) => {
       elements.feedbackElement.classList.remove('text-danger');
       elements.feedbackElement.textContent = i18next.t('status.sending');
       elements.feedbackElement.classList.add('text-success');
-      elements.feedbackElement.textContent = i18next.t('status.success');
       elements.urlInput.focus();
       break;
     case 'added':
-      createContainers(state);
+      createFeedContainers(state);
       createPosts(state, i18next);
       submit.disabled = false;
       elements.feedbackElement.classList.remove('text-danger');
@@ -138,7 +144,7 @@ const render = (state, i18next) => {
 
 const watchState = (state, i18nextInstance) => {
   const watchedState = onChange(state, () => {
-    render(watchedState, i18nextInstance);
+    render(watchedState, i18nextInstance, elements);
   });
   return watchedState;
 };

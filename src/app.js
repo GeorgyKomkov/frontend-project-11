@@ -23,14 +23,15 @@ const app = () => {
   const elements = {
     form: document.querySelector('.rss-form'),
     postsList: document.querySelector('.posts'),
-    feedsContainer: document.querySelector('.feeds'),
-    postsContainer: document.querySelector('.posts'),
+    containerFeeds: document.querySelector('.feeds'),
+    containerPosts: document.querySelector('.posts'),
     feedbackElement: document.querySelector('.feedback'),
     urlInput: document.querySelector('#url-input'),
     modalHeader: document.querySelector('.modal-header'),
     modalBody: document.querySelector('.modal-body'),
     modalHref: document.querySelector('.full-article'),
   };
+  const requestTimeOut = { timeout: 10000 };
 
   const addProxy = (url) => {
     const proxyUrl = new URL('/get', 'https://allorigins.hexlet.app');
@@ -68,35 +69,32 @@ const app = () => {
     watchedState.error = null;
     watchedState.form.status = 'sending';
 
-    axios.get(addProxy(url), {
-      timeout: 10000,
-    })
+    axios.get(addProxy(url), requestTimeOut)
       .then((response) => {
         const data = parse(response.data.contents, url);
         handleData(data, watchedState);
         watchedState.form.status = 'added';
       })
-      .catch((err) => {
-        watchedState.error = handleError(err);
+      .catch((error) => {
+        watchedState.error = handleError(error);
         watchedState.form.status = 'inValid';
       });
   };
 
   const updatePosts = (watchedState) => {
-    const updateFeedData = (feed) => {
-      loadRSS(watchedState, feed.link)
-        .then(() => {
-          setTimeout(updateFeedData, 4000, feed);
-        })
-        .catch((error) => {
-          console.error(`Error fetching data from feed ${feed.id}:`, error);
-          setTimeout(updateFeedData, 4000, feed);
-        });
-    };
-
-    watchedState.feeds.forEach((feed) => {
-      updateFeedData(feed);
-    });
+    const promises = watchedState.feeds.map((feed) => axios.get(addProxy(feed.link))
+      .then((response) => {
+        const { posts } = parse(response.data.contents);
+        const postsWithCurrentId = watchedState.posts.filter((post) => post.feedId === feed.id);
+        const displayedPostLinks = postsWithCurrentId.map((post) => post.link);
+        const newPosts = posts.filter((post) => !displayedPostLinks.includes(post.link));
+        addId(newPosts, feed.id);
+        watchedState.posts.unshift(...newPosts);
+      })
+      .catch((error) => {
+        console.error(`Error fetching data from feed ${feed.id}:`, error);
+      }));
+    return Promise.all(promises).finally(() => setTimeout(updatePosts, 4000, watchedState));
   };
 
   const i18nextInstance = i18next.createInstance();
@@ -121,16 +119,17 @@ const app = () => {
 
     elements.form.addEventListener('submit', (event) => {
       event.preventDefault();
-      const addedURLs = watchedState.feeds.map((feed) => feed.link);
+      const addedUrls = watchedState.feeds.map((feed) => feed.link);
       const formData = new FormData(event.target);
       const input = formData.get('url');
 
-      validateURL(addedURLs, input)
+      validateURL(addedUrls, input)
         .then((error) => {
           if (error) {
             watchedState.error = error.key;
             watchedState.form.status = 'inValid';
           } else {
+            watchedState.form.status = 'added';
             loadRSS(watchedState, input);
           }
         });
