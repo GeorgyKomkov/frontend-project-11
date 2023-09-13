@@ -84,18 +84,21 @@ const createPosts = (state, i18next) => {
       a.classList.add('fw-bold');
     }
     a.textContent = post.title;
-    button.addEventListener('click', () => {
-      const modalHeader = document.querySelector('.modal-header');
-      const modalBody = document.querySelector('.modal-body');
-      const modalHref = document.querySelector('.full-article');
-      modalHeader.innerHTML = `<h5>${post.title}</h5>`;
-      modalBody.textContent = post.description;
-      modalHref.setAttribute('href', post.link);
-    });
     li.append(a);
     li.append(button);
     ul.append(li);
   });
+};
+const displayPostInModal = (state) => {
+  const displayedPostId = state.uiState.displayedPost;
+  if (displayedPostId) {
+    const post = state.posts.find((el) => el.id === displayedPostId);
+    if (post) {
+      elements.modalHeader.innerHTML = `<h5>${post.title}</h5>`;
+      elements.modalBody.textContent = post.description;
+      elements.modalHref.setAttribute('href', post.link);
+    }
+  }
 };
 const isPost = (state, i18next) => {
   if (state.posts.length !== 0) {
@@ -143,7 +146,10 @@ const render = (state, i18next) => {
 };
 
 const watchState = (state, i18nextInstance) => {
-  const watchedState = onChange(state, () => {
+  const watchedState = onChange(state, (path) => {
+    if (path === 'uiState.displayedPost') {
+      displayPostInModal(watchedState);
+    }
     render(watchedState, i18nextInstance, elements);
   });
   return watchedState;
