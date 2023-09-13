@@ -100,9 +100,9 @@ const displayPostInModal = (state, elements) => {
     }
   }
 };
-const isPost = (state, i18next) => {
+const isPost = (state, i18next, elements) => {
   if (state.posts.length !== 0) {
-    return createPosts(state, i18next);
+    return createPosts(state, i18next, elements);
   }
   return null;
 };
@@ -114,7 +114,7 @@ const render = (state, i18next, elements) => {
 
   switch (state.form.status) {
     case 'inValid':
-      isPost(state, i18next);
+      isPost(state, i18next, elements);
       submit.disabled = false;
       elements.feedbackElement.textContent = i18next.t(`errors.${state.error}`);
       elements.urlInput.classList.add('is-invalid');
@@ -130,8 +130,8 @@ const render = (state, i18next, elements) => {
       elements.urlInput.focus();
       break;
     case 'added':
-      createFeedContainers(state);
-      createPosts(state, i18next);
+      createFeedContainers(state, elements);
+      createPosts(state, i18next, elements);
       submit.disabled = false;
       elements.feedbackElement.classList.remove('text-danger');
       elements.feedbackElement.classList.add('text-success');
