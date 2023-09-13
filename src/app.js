@@ -7,7 +7,68 @@ import parse from './rss.js';
 import customMessages from './locales/customMessages.js';
 import watch from './view.js';
 
+const requestTimeOut = { timeout: 10000 };
+const addProxy = (url) => {
+  const proxyUrl = new URL('/get', 'https://allorigins.hexlet.app');
+  proxyUrl.searchParams.append('disableCache', 'true');
+  proxyUrl.searchParams.append('url', url);
+  return proxyUrl.toString();
+};
+const addId = (items, id) => {
+  items.forEach((item) => {
+    item.id = uniqueId();
+    item.feedId = id;
+  });
+};
+const handleData = (data, watchedState) => {
+  const { feed, posts } = data;
+  feed.id = uniqueId();
+  watchedState.feeds.push(feed);
+  addId(posts, feed.id);
+  watchedState.posts.unshift(...posts);
+};
+const handleError = (error) => {
+  if (error.isParsingError) {
+    return 'notRss';
+  }
+  if (axios.isAxiosError(error)) {
+    return 'networkError';
+  }
+  return 'unknown';
+};
+const loadRSS = (watchedState, url) => {
+  watchedState.error = null;
+  watchedState.form.status = 'sending';
+
+  axios.get(addProxy(url), requestTimeOut)
+    .then((response) => {
+      const data = parse(response.data.contents, url);
+      handleData(data, watchedState);
+      watchedState.form.status = 'added';
+    })
+    .catch((error) => {
+      watchedState.error = handleError(error);
+      watchedState.form.status = 'inValid';
+    });
+};
+const updatePosts = (watchedState) => {
+  const promises = watchedState.feeds.map((feed) => axios.get(addProxy(feed.link))
+    .then((response) => {
+      const { posts } = parse(response.data.contents);
+      const postsWithCurrentId = watchedState.posts.filter((post) => post.feedId === feed.id);
+      const displayedPostLinks = postsWithCurrentId.map((post) => post.link);
+      const newPosts = posts.filter((post) => !displayedPostLinks.includes(post.link));
+      addId(newPosts, feed.id);
+      watchedState.posts.unshift(...newPosts);
+    })
+    .catch((error) => {
+      console.error(`Error fetching data from feed ${feed.id}:`, error);
+    }));
+  return Promise.all(promises).finally(() => setTimeout(updatePosts, 4000, watchedState));
+};
 const app = () => {
+  yup.setLocale(customMessages);
+
   const state = {
     form: {
       status: 'filling',
@@ -20,6 +81,7 @@ const app = () => {
       viewedPostIds: new Set(),
     },
   };
+
   const elements = {
     form: document.querySelector('.rss-form'),
     postsList: document.querySelector('.posts'),
@@ -31,71 +93,6 @@ const app = () => {
     modalBody: document.querySelector('.modal-body'),
     modalHref: document.querySelector('.full-article'),
   };
-  const requestTimeOut = { timeout: 10000 };
-
-  const addProxy = (url) => {
-    const proxyUrl = new URL('/get', 'https://allorigins.hexlet.app');
-    proxyUrl.searchParams.append('disableCache', 'true');
-    proxyUrl.searchParams.append('url', url);
-    return proxyUrl.toString();
-  };
-
-  const addId = (items, id) => {
-    items.forEach((item) => {
-      item.id = uniqueId();
-      item.feedId = id;
-    });
-  };
-
-  const handleData = (data, watchedState) => {
-    const { feed, posts } = data;
-    feed.id = uniqueId();
-    watchedState.feeds.push(feed);
-    addId(posts, feed.id);
-    watchedState.posts.unshift(...posts);
-  };
-
-  const handleError = (error) => {
-    if (error.isParsingError) {
-      return 'notRss';
-    }
-    if (axios.isAxiosError(error)) {
-      return 'networkError';
-    }
-    return 'unknown';
-  };
-
-  const loadRSS = (watchedState, url) => {
-    watchedState.error = null;
-    watchedState.form.status = 'sending';
-
-    axios.get(addProxy(url), requestTimeOut)
-      .then((response) => {
-        const data = parse(response.data.contents, url);
-        handleData(data, watchedState);
-        watchedState.form.status = 'added';
-      })
-      .catch((error) => {
-        watchedState.error = handleError(error);
-        watchedState.form.status = 'inValid';
-      });
-  };
-
-  const updatePosts = (watchedState) => {
-    const promises = watchedState.feeds.map((feed) => axios.get(addProxy(feed.link))
-      .then((response) => {
-        const { posts } = parse(response.data.contents);
-        const postsWithCurrentId = watchedState.posts.filter((post) => post.feedId === feed.id);
-        const displayedPostLinks = postsWithCurrentId.map((post) => post.link);
-        const newPosts = posts.filter((post) => !displayedPostLinks.includes(post.link));
-        addId(newPosts, feed.id);
-        watchedState.posts.unshift(...newPosts);
-      })
-      .catch((error) => {
-        console.error(`Error fetching data from feed ${feed.id}:`, error);
-      }));
-    return Promise.all(promises).finally(() => setTimeout(updatePosts, 4000, watchedState));
-  };
 
   const i18nextInstance = i18next.createInstance();
   i18nextInstance.init({
@@ -103,10 +100,7 @@ const app = () => {
     debug: false,
     resources,
   }).then(() => {
-    const watchedState = watch(state, i18nextInstance);
-
-    yup.setLocale(customMessages);
-
+    const watchedState = watch(state, i18nextInstance, elements);
     const validateURL = (existingURLs, input) => {
       const schema = yup.object().shape({
         url: yup.string().url().required().notOneOf(existingURLs),

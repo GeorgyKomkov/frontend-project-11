@@ -1,15 +1,15 @@
 import onChange from 'on-change';
 
-const elements = {
-  containerFeeds: document.querySelector('.feeds'),
-  containerPosts: document.querySelector('.posts'),
-  form: document.querySelector('.rss-form'),
-  feedbackElement: document.querySelector('.feedback'),
-  urlInput: document.querySelector('#url-input'),
-  modalHeader: document.querySelector('.modal-header'),
-  modalBody: document.querySelector('.modal-body'),
-  modalHref: document.querySelector('.full-article'),
-};
+// const elements = {
+//   containerFeeds: document.querySelector('.feeds'),
+//   containerPosts: document.querySelector('.posts'),
+//   form: document.querySelector('.rss-form'),
+//   feedbackElement: document.querySelector('.feedback'),
+//   urlInput: document.querySelector('#url-input'),
+//   modalHeader: document.querySelector('.modal-header'),
+//   modalBody: document.querySelector('.modal-body'),
+//   modalHref: document.querySelector('.full-article'),
+// };
 
 const createButton = (post, i18next) => {
   const button = document.createElement('button');
@@ -22,7 +22,7 @@ const createButton = (post, i18next) => {
   return button;
 };
 
-const createFeedContainers = (state) => {
+const createFeedContainers = (state, elements) => {
   elements.containerFeeds.innerHTML = '';
   const divContainer = document.createElement('div');
   const divTitle = document.createElement('div');
@@ -53,7 +53,7 @@ const createFeedContainers = (state) => {
   });
 };
 
-const createPosts = (state, i18next) => {
+const createPosts = (state, i18next, elements) => {
   elements.containerPosts.innerHTML = '';
   const divContainer = document.createElement('div');
   const divTitle = document.createElement('div');
@@ -89,7 +89,7 @@ const createPosts = (state, i18next) => {
     ul.append(li);
   });
 };
-const displayPostInModal = (state) => {
+const displayPostInModal = (state, elements) => {
   const displayedPostId = state.uiState.displayedPost;
   if (displayedPostId) {
     const post = state.posts.find((el) => el.id === displayedPostId);
@@ -107,7 +107,7 @@ const isPost = (state, i18next) => {
   return null;
 };
 
-const render = (state, i18next) => {
+const render = (state, i18next, elements) => {
   const submit = document.querySelector('.px-sm-5');
 
   elements.feedbackElement.textContent = '';
@@ -145,10 +145,10 @@ const render = (state, i18next) => {
   }
 };
 
-const watchState = (state, i18nextInstance) => {
+const watchState = (state, i18nextInstance, elements) => {
   const watchedState = onChange(state, (path) => {
     if (path === 'uiState.displayedPost') {
-      displayPostInModal(watchedState);
+      displayPostInModal(watchedState, elements);
     }
     render(watchedState, i18nextInstance, elements);
   });
