@@ -10,12 +10,11 @@ const parseXML = (xml) => {
   return data;
 };
 
-const parse = (xml, url) => {
+const parse = (xml) => {
   const data = parseXML(xml);
   const feedTitle = data.querySelector('title').textContent;
   const feedDescription = data.querySelector('description').textContent;
   const feed = {
-    link: url,
     title: feedTitle,
     description: feedDescription,
   };

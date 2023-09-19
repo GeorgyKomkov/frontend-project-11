@@ -7,7 +7,8 @@ import parse from './rss.js';
 import customMessages from './locales/customMessages.js';
 import watch from './view.js';
 
-const requestTimeOut = { timeout: 10000 };
+const defaultOptions = { timeout: 10000 };
+const timeOut = 4000;
 const addProxy = (url) => {
   const proxyUrl = new URL('/get', 'https://allorigins.hexlet.app');
   proxyUrl.searchParams.append('disableCache', 'true');
@@ -20,8 +21,9 @@ const addId = (items, id) => {
     item.feedId = id;
   });
 };
-const handleData = (data, watchedState) => {
+const handleData = (data, watchedState, url) => {
   const { feed, posts } = data;
+  feed.link = url;
   feed.id = uniqueId();
   watchedState.feeds.push(feed);
   addId(posts, feed.id);
@@ -40,10 +42,10 @@ const loadRSS = (watchedState, url) => {
   watchedState.error = null;
   watchedState.form.status = 'sending';
 
-  axios.get(addProxy(url), requestTimeOut)
+  axios.get(addProxy(url), defaultOptions)
     .then((response) => {
       const data = parse(response.data.contents, url);
-      handleData(data, watchedState);
+      handleData(data, watchedState, url);
       watchedState.form.status = 'added';
     })
     .catch((error) => {
@@ -64,7 +66,7 @@ const updatePosts = (watchedState) => {
     .catch((error) => {
       console.error(`Error fetching data from feed ${feed.id}:`, error);
     }));
-  return Promise.all(promises).finally(() => setTimeout(updatePosts, 4000, watchedState));
+  return Promise.all(promises).finally(() => setTimeout(updatePosts, timeOut, watchedState));
 };
 const app = () => {
   yup.setLocale(customMessages);
@@ -84,10 +86,9 @@ const app = () => {
 
   const elements = {
     form: document.querySelector('.rss-form'),
-    postsList: document.querySelector('.posts'),
     containerFeeds: document.querySelector('.feeds'),
     containerPosts: document.querySelector('.posts'),
-    feedbackElement: document.querySelector('.feedback'),
+    feedback: document.querySelector('.feedback'),
     urlInput: document.querySelector('#url-input'),
     modalHeader: document.querySelector('.modal-header'),
     modalBody: document.querySelector('.modal-body'),
@@ -129,7 +130,7 @@ const app = () => {
         });
     });
 
-    elements.postsList.addEventListener('click', (e) => {
+    elements.containerPosts.addEventListener('click', (e) => {
       const postId = e.target.dataset.id;
       if (postId) {
         watchedState.uiState.displayedPost = postId;
