@@ -79,13 +79,14 @@ const app = () => {
     feeds: [],
     posts: [],
     uiState: {
-      displayedPost: null,
+      currentPostId: null,
       viewedPostIds: new Set(),
     },
   };
 
   const elements = {
     form: document.querySelector('.rss-form'),
+    submit: document.querySelector('.px-sm-5'),
     containerFeeds: document.querySelector('.feeds'),
     containerPosts: document.querySelector('.posts'),
     feedback: document.querySelector('.feedback'),
@@ -133,7 +134,7 @@ const app = () => {
     elements.containerPosts.addEventListener('click', (e) => {
       const postId = e.target.dataset.id;
       if (postId) {
-        watchedState.uiState.displayedPost = postId;
+        watchedState.uiState.currentPostId = postId;
         watchedState.uiState.viewedPostIds.add(postId);
       }
     });

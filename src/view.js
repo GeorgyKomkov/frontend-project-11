@@ -10,26 +10,8 @@ const createButton = (post, i18next) => {
   button.textContent = i18next.t('buttons.view');
   return button;
 };
-// const createList = (containerType, elements) => {
-//   elements[containerType].innerHTML = '';
-//   const divContainer = document.createElement('div');
-//   const divTitle = document.createElement('div');
-//   const ul = document.createElement('ul');
-//   const h2 = document.createElement('h2');
-
-//   divContainer.classList.add('card', 'border-0');
-//   divTitle.classList.add('card-body');
-//   ul.classList.add('list-group', 'border-0', 'rounded-0');
-//   divContainer.append(divTitle, ul);
-//   h2.classList.add('card-title', 'h4');
-//   if (containerType === 'containerFeeds') h2.textContent = 'Фиды';
-//   if (containerType === 'containerPosts') h2.textContent = 'Посты';
-//   divTitle.append(h2);
-//   elements[containerType].append(divContainer);
-// };
 
 const createFeeds = (state, elements) => {
-  // createList('containerFeeds', elements);
   elements.containerFeeds.innerHTML = '';
   const divContainer = document.createElement('div');
   const divTitle = document.createElement('div');
@@ -61,7 +43,6 @@ const createFeeds = (state, elements) => {
 };
 
 const createPosts = (state, i18next, elements) => {
-  // createList('containerPosts', elements);
   elements.containerPosts.innerHTML = '';
   const divContainer = document.createElement('div');
   const divTitle = document.createElement('div');
@@ -107,37 +88,32 @@ const createPosts = (state, i18next, elements) => {
 };
 
 const displayPostInModal = (state, elements) => {
-  const displayedPostId = state.uiState.displayedPost;
+  const displayedPostId = state.uiState.currentPostId;
   const currentPost = state.posts.find((post) => post.id === displayedPostId);
-  if (currentPost) {
-    const modalTitleElement = elements.modalHeader.querySelector('.modal-title');
-    if (modalTitleElement) {
-      const titleElement = document.createElement('h5');
-      titleElement.textContent = currentPost.title;
-      modalTitleElement.innerHTML = '';
-      modalTitleElement.appendChild(titleElement);
-    }
-    elements.modalBody.textContent = currentPost.description;
-    elements.modalHref.setAttribute('href', currentPost.link);
+
+  const modalTitleElement = elements.modalHeader.querySelector('.modal-title');
+  if (modalTitleElement) {
+    const titleElement = document.createElement('h5');
+    titleElement.textContent = currentPost.title;
+    modalTitleElement.innerHTML = '';
+    modalTitleElement.appendChild(titleElement);
   }
+  elements.modalBody.textContent = currentPost.description;
+  elements.modalHref.setAttribute('href', currentPost.link);
 };
 
 const renderFormStatus = (state, i18next, elements) => {
-  const submit = document.querySelector('.px-sm-5');
-
   elements.feedback.textContent = '';
-
   switch (state.form.status) {
     case 'inValid':
-      // hasPost(state, i18next, elements);
-      submit.disabled = false;
+      elements.submit.disabled = false;
       elements.feedback.textContent = i18next.t(`errors.${state.error}`);
       elements.urlInput.classList.add('is-invalid');
       elements.feedback.classList.remove('text-success');
       elements.feedback.classList.add('text-danger');
       break;
     case 'sending':
-      submit.disabled = true;
+      elements.submit.disabled = true;
       elements.urlInput.classList.remove('is-invalid');
       elements.feedback.classList.remove('text-danger');
       elements.feedback.textContent = i18next.t('status.sending');
@@ -145,9 +121,7 @@ const renderFormStatus = (state, i18next, elements) => {
       elements.urlInput.focus();
       break;
     case 'added':
-      // createFeeds(state, elements);
-      // createPosts(state, i18next, elements);
-      submit.disabled = false;
+      elements.submit.disabled = false;
       elements.feedback.classList.remove('text-danger');
       elements.feedback.classList.add('text-success');
       elements.urlInput.classList.remove('is-invalid');
@@ -163,7 +137,7 @@ const renderFormStatus = (state, i18next, elements) => {
 const watchState = (state, i18nextInstance, elements) => {
   const watchedState = onChange(state, (path) => {
     switch (path) {
-      case 'uiState.displayedPost':
+      case 'uiState.currentPostId' || 'uiState.viewedPostIds':
         displayPostInModal(watchedState, elements);
         break;
       case 'feeds':
