@@ -92,7 +92,12 @@ const displayPostInModal = (state, elements) => {
   const currentPost = state.posts.find((post) => post.id === displayedPostId);
 
   const modalTitleElement = elements.modalHeader.querySelector('.modal-title');
-  modalTitleElement.textContent = currentPost.title;
+//  if (modalTitleElement) {
+//    const titleElement = document.createElement('h5');
+//    titleElement.textContent = currentPost.title;
+    modalTitleElement.innerHTML = '';
+//    modalTitleElement.appendChild(titleElement);
+  }
   elements.modalBody.textContent = currentPost.description;
   elements.modalHref.setAttribute('href', currentPost.link);
 };
